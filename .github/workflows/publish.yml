@@ -31,6 +31,6 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - run: npm ci --no-audit
       - run: npm run build
-      - run: npm publish --access public ./dist
+      - run: npm publish --provenance --access public ./dist
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
