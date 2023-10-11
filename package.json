@@ -1,0 +1,49 @@
+{
+  "name": "jsonlogic-formula",
+  "version": "0.1.0",
+  "description": "JsonLogic parser to and from spreadsheet formula syntax",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "node -r tsm ./scripts/build.ts && npm run declarations",
+    "lint": "biome ci src scripts",
+    "test": "uvu -r tsm",
+    "coverage": "c8 --check-coverage npm test",
+    "declarations": "tsc --declarationDir dist --emitDeclarationOnly --declaration",
+    "postbuild": "cat package.json | sed '/\\\"devDependencies\\\"/,/}/ d; /^$/d' | sed 's/\\.\\/dist\\//\\.\\//g' > ./dist/package.json && cp README.md dist && cp LICENSE dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Marcisbee/jsonlogic-formula.git"
+  },
+  "keywords": [
+    "jsonlogic",
+    "json-logic",
+    "spreadsheet",
+    "formula",
+    "parser"
+  ],
+  "author": "Marcis <marcisbergmanis@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Marcisbee/jsonlogic-formula/issues"
+  },
+  "homepage": "https://github.com/Marcisbee/jsonlogic-formula#readme",
+  "devDependencies": {
+    "@biomejs/biome": "^1.2.2",
+    "@types/node": "^20.8.4",
+    "esbuild": "^0.19.4",
+    "tsm": "^2.3.0",
+    "typescript": "^5.2.2",
+    "uvu": "^0.5.6"
+  },
+  "exports": {
+    "./package.json": "./dist/package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  }
+}
