@@ -1,6 +1,6 @@
 {
   "name": "jsonlogic-formula",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "JsonLogic parser to and from spreadsheet formula syntax",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

@@ -7,7 +7,7 @@ const FN_NAME_OPERATOR = "O";
 
 function parse(ast: any, joinKey = ""): any {
 	if (ast == null) {
-		return "void 0";
+		return "null";
 	}
 
 	if (Array.isArray(ast)) {
@@ -123,6 +123,10 @@ function tokneize(value: string) {
 				continue;
 			}
 
+			if (c[0] === '"' && c[len - 1] !== '"') {
+				throw new Error(`Unclosed quote (") at ${iLen - len + 1}`);
+			}
+
 			if (c[0] === "'" && c[len - 1] === "'") {
 				i++;
 				continue;
@@ -135,6 +139,17 @@ function tokneize(value: string) {
 			// Eat whitespace
 			if (c === " " || c === "\n" || c === "\r" || c === "\t") {
 				i++;
+				continue;
+			}
+
+			if (c === "(") {
+				i++;
+				group.push(...parseGroups());
+
+				if (chunks[i - 1] !== ")") {
+					throw new Error(`Unclosed parenthesis "(" at ${iLen}`);
+				}
+
 				continue;
 			}
 
@@ -184,7 +199,7 @@ function tokneize(value: string) {
 				group.push(token);
 
 				if (chunks[i - 1] !== ")") {
-					throw new Error(`Expected ")" at position ${iLen}`);
+					throw new Error(`Unclosed parenthesis "(" at ${iLen}`);
 				}
 
 				continue;
@@ -259,19 +274,19 @@ function tokneize(value: string) {
 				continue;
 			}
 
-			if (c === "TRUE") {
+			if (c.toUpperCase() === "TRUE") {
 				i++;
 				group.push(true);
 				continue;
 			}
 
-			if (c === "FALSE") {
+			if (c.toUpperCase() === "FALSE") {
 				i++;
 				group.push(false);
 				continue;
 			}
 
-			if (c === "NULL") {
+			if (c.toUpperCase() === "NULL") {
 				i++;
 				group.push(null);
 				continue;
