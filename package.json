@@ -9,6 +9,8 @@
     "build": "node -r tsm ./scripts/build.ts && npm run declarations",
     "lint": "biome ci src scripts",
     "test": "uvu -r tsm",
+    "test:csp": "node --disallow-code-generation-from-strings node_modules/uvu/bin.js -r tsm",
+    "benchmark": "node -r tsm scripts/benchmark.ts",
     "coverage": "c8 --check-coverage npm test",
     "declarations": "tsc --declarationDir dist --emitDeclarationOnly --declaration",
     "postbuild": "cat package.json | sed '/\\\"devDependencies\\\"/,/}/ d; /^$/d' | sed 's/\\.\\/dist\\//\\.\\//g' > ./dist/package.json && cp README.md dist && cp LICENSE dist"

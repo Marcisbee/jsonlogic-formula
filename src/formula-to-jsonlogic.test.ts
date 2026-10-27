@@ -9,6 +9,27 @@ test("exports `formulaToJsonlogic`", () => {
 
 const expectResult: [any, any][] = [
 	["TRUE", true],
+	["NOT(null)", { "!": [null] }],
+	["NOT(NOT(false))", { "!!": [false] }],
+	["CUSTOM()", { custom: [] }],
+	["1+2*3", { "+": [1, { "*": [2, 3] }] }],
+	["8/2", { "/": [8, 2] }],
+	['"a"&"b"', { cat: ["a", "b"] }],
+	["1<>2", { "!==": [1, 2] }],
+	["-A1", { "-": [0, { var: "A1" }] }],
+	['CONCAT(",",";")', { concat: [",", ";"] }],
+	["SUM({1})", { sum: [[[1]]] }],
+	[
+		"SUM({1,2;3,4})",
+		{
+			sum: [
+				[
+					[1, 2],
+					[3, 4],
+				],
+			],
+		},
+	],
 	["true", true],
 	["FALSE", false],
 	["false", false],
