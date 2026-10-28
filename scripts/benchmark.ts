@@ -1,8 +1,10 @@
+import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { performance } from "node:perf_hooks";
-import { formulaToJsonlogic } from "../src/formula-to-jsonlogic";
+import { formulaToJsonlogic } from "../src/formula-to-jsonlogic.ts";
 
 // An optional source path allows the same workloads to measure a prior revision.
+const require = createRequire(import.meta.url);
 const parse: typeof formulaToJsonlogic = process.argv[2]
 	? require(resolve(process.argv[2])).formulaToJsonlogic
 	: formulaToJsonlogic;

@@ -1,4 +1,4 @@
-const ANY_REGEX_BREAK = /[&;,=><+\-)\*\/]/;
+const ANY_REGEX_BREAK = /[&;,=><+\-)*/]/;
 
 const SEPARATOR = Symbol("separator");
 
@@ -9,7 +9,7 @@ function expression(values: any[]): any {
 function tokenize(value: string) {
 	const chunks = value
 		.split(
-			/("[^"]*"|'[^']*'|\#[A-Z\/0_]+[\!?]?|\[[^\]]*\]|[\w\.]+\s*\(|>=|<=|<>|[!&:;,+\-\/*()=<>%^\s{}@])/,
+			/("[^"]*"|'[^']*'|#[A-Z/0_]+[!?]?|\[[^\]]*\]|[\w.]+\s*\(|>=|<=|<>|[!&:;,+\-/*()=<>%^\s{}@])/,
 		)
 		.filter((value) => !!value);
 	let i = 0;
@@ -200,7 +200,7 @@ function tokenize(value: string) {
 				const token = OPERATOR(
 					c,
 					group.pop(),
-					expression(parseGroups(/[\;\,=><)]/)),
+					expression(parseGroups(/[;,=><)]/)),
 				);
 				group.push(token);
 				continue;

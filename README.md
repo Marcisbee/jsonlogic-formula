@@ -48,7 +48,13 @@ Jsonlogic is very powerful tool, but it is not easy for the end users to underst
 
 ## Development
 
+Use Node.js 22.18 or newer for development. Build scripts and tests run TypeScript
+with Node’s native type stripping; tests use `node:test` and `node:assert/strict`.
+
 Run `npm test`, `npm run test:csp`, `npm run lint`, and `npm run build`.
+`npm run lint` checks code with Oxlint and formatting with Oxfmt. Use
+`npm run format` to apply formatting and `npm run coverage` for native Node test
+coverage.
 The CSP check runs parsing with JavaScript string compilation disabled.
 
 Run `npm run benchmark` to measure repeated, varying, and 100-argument

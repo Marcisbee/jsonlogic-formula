@@ -1,21 +1,19 @@
-import { test } from "uvu";
-import assert from "uvu/assert";
+import { test } from "node:test";
+import assert from "node:assert/strict";
 
-import { jsonlogicToFormula } from "./jsonlogic-to-string";
+import { jsonlogicToFormula } from "./jsonlogic-to-string.ts";
 
 test("exports `jsonlogicToFormula`", () => {
-	assert.instance(jsonlogicToFormula, Function);
+	assert.equal(typeof jsonlogicToFormula, "function");
 });
 
 test("parses `true`", () => {
-	assert.equal(jsonlogicToFormula(true), "TRUE");
+	assert.deepStrictEqual(jsonlogicToFormula(true), "TRUE");
 });
 
 test("parses `{if: [true, 'a', 'b']}`", () => {
-	assert.equal(
+	assert.deepStrictEqual(
 		jsonlogicToFormula({ if: [true, "a", "b"] }),
 		`IF(TRUE,"a","b")`,
 	);
 });
-
-test.run();
