@@ -1,14 +1,35 @@
-import { test } from "uvu";
-import assert from "uvu/assert";
+import { test } from "node:test";
+import assert from "node:assert/strict";
 
-import { formulaToJsonlogic } from "./formula-to-jsonlogic";
+import { formulaToJsonlogic } from "./formula-to-jsonlogic.ts";
 
 test("exports `formulaToJsonlogic`", () => {
-	assert.instance(formulaToJsonlogic, Function);
+	assert.equal(typeof formulaToJsonlogic, "function");
 });
 
 const expectResult: [any, any][] = [
 	["TRUE", true],
+	["NOT(null)", { "!": [null] }],
+	["NOT(NOT(false))", { "!!": [false] }],
+	["CUSTOM()", { custom: [] }],
+	["1+2*3", { "+": [1, { "*": [2, 3] }] }],
+	["8/2", { "/": [8, 2] }],
+	['"a"&"b"', { cat: ["a", "b"] }],
+	["1<>2", { "!==": [1, 2] }],
+	["-A1", { "-": [0, { var: "A1" }] }],
+	['CONCAT(",",";")', { concat: [",", ";"] }],
+	["SUM({1})", { sum: [[[1]]] }],
+	[
+		"SUM({1,2;3,4})",
+		{
+			sum: [
+				[
+					[1, 2],
+					[3, 4],
+				],
+			],
+		},
+	],
 	["true", true],
 	["FALSE", false],
 	["false", false],
@@ -38,12 +59,12 @@ const expectResult: [any, any][] = [
 
 for (const [input, expectation] of expectResult) {
 	test(`parses ${JSON.stringify(input)}`, () => {
-		assert.equal(formulaToJsonlogic(input), expectation);
+		assert.deepStrictEqual(formulaToJsonlogic(input), expectation);
 	});
 }
 
 test(`parses "IF(foo=1,"a","b")"`, () => {
-	assert.equal(formulaToJsonlogic(`IF(foo=1,"a","b")`), {
+	assert.deepStrictEqual(formulaToJsonlogic(`IF(foo=1,"a","b")`), {
 		if: [
 			{
 				"===": [
@@ -60,24 +81,27 @@ test(`parses "IF(foo=1,"a","b")"`, () => {
 });
 
 test(`parses " IF( foo = 1 , " a " , " b " ) "`, () => {
-	assert.equal(formulaToJsonlogic(` IF( foo = 1 , " a " , " b " ) `), {
-		if: [
-			{
-				"===": [
-					{
-						var: "foo",
-					},
-					1,
-				],
-			},
-			" a ",
-			" b ",
-		],
-	});
+	assert.deepStrictEqual(
+		formulaToJsonlogic(` IF( foo = 1 , " a " , " b " ) `),
+		{
+			if: [
+				{
+					"===": [
+						{
+							var: "foo",
+						},
+						1,
+					],
+				},
+				" a ",
+				" b ",
+			],
+		},
+	);
 });
 
 test(`parses "IF(null=null,null,NULL)"`, () => {
-	assert.equal(formulaToJsonlogic("IF(null=null,null,NULL)"), {
+	assert.deepStrictEqual(formulaToJsonlogic("IF(null=null,null,NULL)"), {
 		if: [
 			{
 				"===": [null, null],
@@ -89,16 +113,19 @@ test(`parses "IF(null=null,null,NULL)"`, () => {
 });
 
 test(`parses "OR(true,false)"`, () => {
-	assert.equal(formulaToJsonlogic("AND(OR(true,false),or(TRUE,FALSE))"), {
-		and: [
-			{
-				or: [true, false],
-			},
-			{
-				or: [true, false],
-			},
-		],
-	});
+	assert.deepStrictEqual(
+		formulaToJsonlogic("AND(OR(true,false),or(TRUE,FALSE))"),
+		{
+			and: [
+				{
+					or: [true, false],
+				},
+				{
+					or: [true, false],
+				},
+			],
+		},
+	);
 });
 
 // Error handling
@@ -126,5 +153,3 @@ test("throws OR(", () => {
 		/Unclosed parenthesis "\(" at 3/,
 	);
 });
-
-test.run();

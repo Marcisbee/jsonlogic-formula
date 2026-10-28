@@ -71,7 +71,7 @@ export function jsonlogicToFormula(value: any, depth = 0): string | string[] {
 				return chunk1.join(op);
 			}
 
-			if (/^[+\-*\/%]+$/.test(name)) {
+			if (/^[+\-*/%]+$/.test(name)) {
 				const op = OPERATOR_MAP[name] || name;
 
 				if (arrayResult.length === 1) {

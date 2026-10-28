@@ -46,5 +46,24 @@ function jsonlogicToFormula(value: jsonlogic): string
 # Motivation
 Jsonlogic is very powerful tool, but it is not easy for the end users to understand it. Since anyone with basic Excel/Spreadsheet knowledge can understand formula syntax (e.g. `SUM(A1,B1)`) it makese sense to have a parser that can transform formula to jsonlogic and jsonlogic to formula. This makes UX way better.
 
+## Development
+
+Use Node.js 22.18 or newer for development. Build scripts and tests run TypeScript
+with Node’s native type stripping; tests use `node:test` and `node:assert/strict`.
+
+Run `npm test`, `npm run test:csp`, `npm run lint`, and `npm run build`.
+`npm run lint` checks code with Oxlint and formatting with Oxfmt. Use
+`npm run format` to apply formatting and `npm run coverage` for native Node test
+coverage.
+The CSP check runs parsing with JavaScript string compilation disabled.
+
+Run `npm run benchmark` to measure repeated, varying, and 100-argument
+formulas. It reports median/min/max microseconds per parse across nine batches,
+after five warmup passes. Compare on the same machine and Node version; these
+are local microbenchmarks, not application latency guarantees. To measure an
+older parser with identical workloads, save that revision's
+`src/formula-to-jsonlogic.ts` outside the repository and pass its absolute path
+to `npm run benchmark -- /path/to/formula-to-jsonlogic.ts`.
+
 # License
 [MIT](LICENCE) &copy; [Marcis Bergmanis](https://twitter.com/marcisbee)

@@ -1,83 +1,15 @@
-const ANY_REGEX_BREAK = /[&;,=><+\-)\*\/]/;
+const ANY_REGEX_BREAK = /[&;,=><+\-)*/]/;
 
-const FN_SEP = ", ";
-const FN_NAME_VARIABLE = "V";
-const FN_NAME_FUNCTION = "F";
-const FN_NAME_OPERATOR = "O";
+const SEPARATOR = Symbol("separator");
 
-function parse(ast: any, joinKey = ""): any {
-	if (ast == null) {
-		return "null";
-	}
-
-	if (Array.isArray(ast)) {
-		if (!joinKey && ast.length > 1) {
-			return `[${ast.map((a) => parse(a)).join(",")}]`;
-		}
-
-		return ast.map((a) => parse(a)).join(joinKey);
-	}
-
-	if (typeof ast === "string") {
-		return JSON.stringify(ast);
-	}
-
-	return ast.toString();
+function expression(values: any[]): any {
+	return values.length === 1 ? values[0] : values.length ? values : undefined;
 }
 
-const VariableTokenKey = "@VAR";
-function VariableToken(
-	variable: string,
-	leftSheet?: string,
-	rightSheet?: string,
-) {
-	return {
-		$key: VariableTokenKey,
-		variable,
-		leftSheet,
-		rightSheet,
-		toString() {
-			return `${FN_NAME_VARIABLE}(${JSON.stringify(
-				this.variable,
-			)}, ${JSON.stringify(this.leftSheet)}, ${JSON.stringify(
-				this.rightSheet,
-			)})`;
-		},
-	};
-}
-
-const FunctionTokenKey = "@FN";
-function FunctionToken(name: string, args: any) {
-	return {
-		$key: FunctionTokenKey,
-		name,
-		args,
-		toString() {
-			return `${FN_NAME_FUNCTION}('${this.name}', ${parse(this.args, FN_SEP)})`;
-		},
-	};
-}
-
-const OperatorTokenKey = "@OP";
-function OperatorToken(operator: string, left: any, right?: any) {
-	return {
-		$key: OperatorTokenKey,
-		operator,
-		left,
-		right,
-		toString() {
-			return `${FN_NAME_OPERATOR}('${this.operator}', ${parse(
-				this.left,
-				FN_SEP,
-			)}, ${parse(this.right, FN_SEP)})`;
-		},
-	};
-}
-
-function tokneize(value: string) {
+function tokenize(value: string) {
 	const chunks = value
 		.split(
-			/("[^"]*"|'[^']*'|\#[A-Z\/0_]+[\!?]?|\[[^\]]*\]|[\w\.]+\s*\(|>=|<=|<>|[!&:;,+\-\/*()=<>%^\s{}@])/,
+			/("[^"]*"|'[^']*'|#[A-Z/0_]+[!?]?|\[[^\]]*\]|[\w.]+\s*\(|>=|<=|<>|[!&:;,+\-/*()=<>%^\s{}@])/,
 		)
 		.filter((value) => !!value);
 	let i = 0;
@@ -87,7 +19,7 @@ function tokneize(value: string) {
 	let arrayMode = false;
 	let arrayDepth = 0;
 
-	return parseGroups().filter((value) => value !== ",");
+	return parseGroups().filter((value) => value !== SEPARATOR);
 
 	function parseGroups(breakOn?: RegExp) {
 		const group: any[] = [];
@@ -192,9 +124,9 @@ function tokneize(value: string) {
 			// Handle functions SUM(...)
 			if (len > 1 && c.charAt(len - 1) === "(") {
 				i++;
-				const token = FunctionToken(
+				const token = FUNCTION(
 					c.slice(0, -1).trim().toUpperCase(),
-					parseGroups().filter((v) => "," !== v),
+					...parseGroups().filter((v) => v !== SEPARATOR),
 				);
 				group.push(token);
 
@@ -212,17 +144,17 @@ function tokneize(value: string) {
 
 			if (c === "%") {
 				i++;
-				const token = OperatorToken(c, group.pop());
+				const token = OPERATOR(c, group.pop(), null);
 				group.push(token);
 				continue;
 			}
 
 			if (c === "*" || c === "/" || c === "&") {
 				i++;
-				const token = OperatorToken(
+				const token = OPERATOR(
 					c,
 					group.pop(),
-					parseGroups(ANY_REGEX_BREAK),
+					expression(parseGroups(ANY_REGEX_BREAK)),
 				);
 				group.push(token);
 				continue;
@@ -233,20 +165,24 @@ function tokneize(value: string) {
 				// Account for "-1", "+1", "-A1" etc.
 				const lastToken = group[group.length - 1];
 				if (
-					lastToken === "," ||
+					lastToken === SEPARATOR ||
 					lastToken === ";" ||
 					lastToken === "" ||
 					lastToken == null
 				) {
-					const token = OperatorToken(c, "0", parseGroups(ANY_REGEX_BREAK));
+					const token = OPERATOR(
+						c,
+						0,
+						expression(parseGroups(ANY_REGEX_BREAK)),
+					);
 					group.push(token);
 					continue;
 				}
 
-				const token = OperatorToken(
+				const token = OPERATOR(
 					c,
 					group.pop(),
-					parseGroups(/[;,=><+\-^&)]/),
+					expression(parseGroups(/[;,=><+\-^&)]/)),
 				);
 				group.push(token);
 				continue;
@@ -261,7 +197,11 @@ function tokneize(value: string) {
 				c === ">"
 			) {
 				i++;
-				const token = OperatorToken(c, group.pop(), parseGroups(/[\;\,=><)]/));
+				const token = OPERATOR(
+					c,
+					group.pop(),
+					expression(parseGroups(/[;,=><)]/)),
+				);
 				group.push(token);
 				continue;
 			}
@@ -297,14 +237,14 @@ function tokneize(value: string) {
 			// - Doesn't include a space or character that isn't allowed
 			// - Doesn't conflict with an existing name in the workbook.
 			if (/^[A-Za-z_\\][\w.]*$/.test(c)) {
-				const token = VariableToken(c);
+				const token = VARIABLE(c);
 				group.push(token);
 
 				i++;
 				continue;
 			}
 
-			group.push(c);
+			group.push(c === "," ? SEPARATOR : c);
 			i++;
 		}
 
@@ -338,7 +278,7 @@ function OPERATOR(type: string, ...args: any[]) {
 
 function FUNCTION(type: string, ...args: any[]) {
 	if (type === "NOT") {
-		if (args[0]["!"]) {
+		if (args[0]?.["!"]) {
 			return {
 				"!!": args[0]["!"],
 			};
@@ -361,12 +301,5 @@ function VARIABLE(name: string) {
 }
 
 export function formulaToJsonlogic(value: string) {
-	const fn = new Function(
-		FN_NAME_VARIABLE,
-		FN_NAME_FUNCTION,
-		FN_NAME_OPERATOR,
-		"return " + parse(tokneize(value)),
-	);
-
-	return fn(VARIABLE, FUNCTION, OPERATOR);
+	return expression(tokenize(value));
 }

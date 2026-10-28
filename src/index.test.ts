@@ -1,14 +1,12 @@
-import { test } from "uvu";
-import assert from "uvu/assert";
+import { test } from "node:test";
+import assert from "node:assert/strict";
 
-import { formulaToJsonlogic, jsonlogicToFormula } from "./index";
+import { formulaToJsonlogic, jsonlogicToFormula } from "./index.ts";
 
 test("exports `formulaToJsonlogic`", () => {
-	assert.instance(formulaToJsonlogic, Function);
+	assert.equal(typeof formulaToJsonlogic, "function");
 });
 
 test("exports `jsonlogicToFormula`", () => {
-	assert.instance(jsonlogicToFormula, Function);
+	assert.equal(typeof jsonlogicToFormula, "function");
 });
-
-test.run();
